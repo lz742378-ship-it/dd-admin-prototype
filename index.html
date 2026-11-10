@@ -2188,8 +2188,17 @@ function confirmDeleteMedia(releaseId,partition){const c=effectiveModuleConfigs.
 function deleteSelectedMedia(){const values=[...document.querySelectorAll('#mediaTableRows [name=mediaSelect]:checked')].map(x=>x.value);if(!values.length)return msg('请先勾选配置');modal('批量删除',`<div class="notice">确认删除选中的 ${values.length} 条配置？</div><div class="actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn danger" onclick="confirmDeleteSelectedMedia()">确认删除</button></div>`);window.mediaPendingDelete=values}
 function confirmDeleteSelectedMedia(){const values=window.mediaPendingDelete||[];const draftIndexes=values.filter(v=>v.startsWith('draft:')).map(v=>Number(v.slice(6))).sort((a,b)=>b-a);draftIndexes.forEach(i=>drafts.splice(i,1));values.filter(v=>v.startsWith('effective:')).forEach(v=>{const bits=v.slice(10).split(':');effectiveModuleConfigs=effectiveModuleConfigs.filter(c=>!(c.releaseId===bits[0]&&c.partition===bits[1]))});audit('批量删除宣传图配置 '+values.length+' 条');window.mediaPendingDelete=[];closeModal();render();msg('已删除 '+values.length+' 条配置')}
 const saveBannerBeforeMedia=saveBanner;
-saveBanner=function(){const module=mediaEditingModule;saveBannerBeforeMedia();if(module!=='banner图配置')mediaEditingModule='banner图配置'};
+saveBanner=function(){const module=mediaEditingModule;saveBannerBeforeMedia();if(module!=='banner图配置'&&!document.getElementById('back').classList.contains('open'))mediaEditingModule='banner图配置'};
 const mediaGenericBefore=generic;
 generic=function(){const module=mediaModule();if(active==='首页管理'&&mediaModules.has(module))return mediaListView(module);return mediaGenericBefore()};
+render();
+</script>
+<script>
+// 首页个人资料保留在账号菜单中，移除左侧独立栏目。
+if(menuHierarchy['首页管理'])delete menuHierarchy['首页管理']['个人信息'];
+groups['首页管理']=Object.entries(menuHierarchy['首页管理']).flatMap(([parent,leaves])=>leaves.length?leaves.map(leaf=>hierarchyKey(parent,leaf)):[parent]);
+openPages=openPages.filter(item=>!(item.group==='首页管理'&&item.name==='个人信息'));
+if(active==='首页管理'&&page==='个人信息')page=hierarchyResolve('首页管理','仪表盘');
+showProfile=function(){document.getElementById('accountMenu')?.classList.remove('open');modal('个人信息',selfProfileView())};
 render();
 </script>
